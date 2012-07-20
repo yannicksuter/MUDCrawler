@@ -18,18 +18,9 @@ class NetworkService implements Runnable { // oder extends Thread
 
 	public void run() { // run the service
 		try {
-			// Endlos-Schleife: warte auf Client-Anforderungen Abbruch durch Strg+C oder Client-Anforderung 'Exit', dadurch wird der ServerSocket beendet, was hier zu einer
-			// IOException führt und damit zum Ende der run-Methode mit vorheriger Abarbeitung der finally-Klausel.
 			while (true) {
-				/*
-				 * Zunächst wird eine Client-Anforderung entgegengenommen(accept-Methode). Der ExecutorService pool liefert einen Thread, dessen run-Methode durch die run-Methode
-				 * der Handler-Instanz realisiert wird. Dem Handler werden als Parameter übergeben: der ServerSocket und der Socket des anfordernden Clients.
-				 */
 				Socket cs = serverSocket.accept(); // warten auf Client-Anforderung
-
-				// starte den Handler-Thread zur Realisierung der
-				// Client-Anforderung
-				pool.execute(new RequestHandler(serverSocket, cs));
+				pool.execute(new RequestHandler(cs));
 			}
 		} catch (IOException ex) {
 			System.out.println("--- Interrupt NetworkService-run");
