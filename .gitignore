@@ -1,3 +1,11 @@
+# eclipse #
+.metadata
+.classpath
+.project
+.settings
+target
+
+# java #
 *.class
 
 # Package Files #
