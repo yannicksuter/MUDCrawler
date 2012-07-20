@@ -7,24 +7,31 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-//Thread bzw. Runnable zur Realisierung der Client-Anforderungen
+import com.ndsi.mudcrawler.text.ANSI;
+
+@SuppressWarnings("unused")
 class RequestHandler implements Runnable { 
 	private final Socket client;
 	private final ServerSocket serverSocket;
 
-	RequestHandler(ServerSocket serverSocket, Socket client) { // Server/Client-Socket
+	RequestHandler(ServerSocket serverSocket, Socket client) {
 		this.client = client;
 		this.serverSocket = serverSocket;
 	}
 
 	public void run() {
+		PrintWriter out = null;
+		try {
+			// read and service request on client
+			System.out.println("running service, " + Thread.currentThread());
+			out = new PrintWriter(client.getOutputStream(), true);
+			out.println(ANSI.LIGHT_BLUE + "Welcome!" + ANSI.SANE);
+		} catch (IOException e1) {
+		}
+		
 		while (true) {
 			StringBuffer sb = new StringBuffer();
-			PrintWriter out = null;
 			try {
-				// read and service request on client
-				System.out.println("running service, " + Thread.currentThread());
-				out = new PrintWriter(client.getOutputStream(), true);
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				
 				char[] buffer = new char[100];
@@ -33,17 +40,11 @@ class RequestHandler implements Runnable {
 				String[] werte = nachricht.split("\\s"); // Trennzeichen: whitespace
 
 				if (werte.length > 0 && werte[0].compareTo("Exit") == 0) {
-					out.println("Server ended");
-					if (!serverSocket.isClosed()) {
-						System.out.println("--- Ende Handler:ServerSocket close");
-						try {
-							serverSocket.close();
-							return;
-						} catch (IOException e) {
-						}
-					}
+					out.println(ANSI.LIGHT_BLUE + "Good bye!");
+					this.client.close();
+					return;
 				} else {
-					sb.append(nachricht.replace("\r\n", ""));
+					sb.append(ANSI.LIGHT_BLUE + "Computer says: " + ANSI.YELLOW + nachricht.replace("\r\n", "") + ANSI.SANE);
 				}			
 			} catch (IOException e) {
 				System.out.println("IOException, Handler-run");

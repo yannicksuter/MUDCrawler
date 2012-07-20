@@ -5,7 +5,7 @@ Migrating a very old MUD base from c to java - this is more or less just a do-wh
 
 ## Howto use
 
-build: run 'mvn install' in the ./server directory, this will create a jar package in ./server/target
+build: run 'mvn install' in the ./server directory, this will create a jar package in ./Server/target
 
 execute: start the MUD server using 'java -jar ./server/target/mudcrawler-*.jar'
 
