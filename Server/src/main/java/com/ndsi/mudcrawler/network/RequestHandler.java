@@ -24,6 +24,8 @@ class RequestHandler extends TelnetProtocol implements Runnable {
 	boolean initialized = false;
 	private PrintWriter pout = null;
 	private BufferedReader reader = null;
+	
+	private boolean continueProcessing = true;
 
 	RequestHandler(Socket client) {
 		this.socket = client;
@@ -49,71 +51,44 @@ class RequestHandler extends TelnetProtocol implements Runnable {
 		initialized = false;
 	}
 
-	private void writeStringBuffer(StringBuffer sb, byte[] buffer, int offset, int len) {
-		synchronized (sb) {
-			for(int e=offset;e<len;e++){
-				if (buffer[e]!='\r' || buffer[e]!='\n')
-					sb.append((char)buffer[e]);
-			}
+	private void showPrompt() throws IOException {
+		send("> ");
+	}
+	
+	private void processInput(String input) throws IOException {
+		int offset;
+		if (-1 != (offset = input.indexOf(ANSI.NEWLINE))) {
+			input = input.substring(0, offset);
+		}
+		
+		if (input.equalsIgnoreCase("quit")) {
+			continueProcessing = false;
+		} else {
+			send(ANSI.BLUE + "Computer says: " + ANSI.SANE + input + ANSI.NEWLINE);
 		}
 	}
 	
 	public void run() {
 		if (initialized) {
 			try {
-				requestEcho(ECHO_ENABLED); 
-				
-				byte[] buffer = new byte[1024];
-				int offset = 0;
-				while (true) {
-					in.mark(buffer.length);
-					int len = in.read(buffer, offset, buffer.length - offset);
-					offset = 0;
-					if (len == -1) {
-						close();
-						return;
-					}
-
-					StringBuffer sb = new StringBuffer();
-					
-					boolean noIAC = true;
-					for (int i = 0; i < len - 1; i++) {
-						if (buffer[i] == IAC) {		
-							writeStringBuffer(sb, buffer, offset, i - offset);
-							offset = i - offset;
-							if (buffer[i + 1] == IAC) {
-								offset++;
-							} else {
-								in.reset();
-								in.skip(i + 1);
-								System.out.print("RCVD>IAC ");
-								interpretTelnetCommand();
-								noIAC = false;
-								break;
-							}
+				requestEcho(ECHO_ENABLED); 				
+				StringBuffer input = null;
+				while (continueProcessing) {
+					showPrompt(); 
+					do {
+						if ((input = getInput()) == null) {
+							close();
+							return;
 						}
-					}
-					if (noIAC) {
-						if (buffer[len - 1] == IAC) {
-							writeStringBuffer(sb, buffer, offset, len - 1);
-							buffer[0] = IAC;
-							offset = 1;
-						} else {
-							writeStringBuffer(sb, buffer, offset, len);
-							offset = 0;
-						}
-					} else {
-						offset = 0;
-					}				
-					
-					if (sb.length() > 0) {
-						pout.print(sb);
-						pout.flush();
-					}
+					} while(input.length() == 0);
+					processInput(input.toString());
 				}
+				close();
 			} catch (Exception e) {
 				e.printStackTrace();
-			}				
+			} finally {
+				System.out.println("--- Client:connection close");
+			}
 		}
 	}
 }

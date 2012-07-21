@@ -36,6 +36,8 @@ public final class ANSI {
 	public static final String BACKGROUND_MAGENTA = "\u001B[45m";
 	public static final String BACKGROUND_CYAN = "\u001B[46m";
 	public static final String BACKGROUND_WHITE = "\u001B[47m";
+	
+	public static final String NEWLINE = "\r\n";
 
 	private ANSI() {
 	}
