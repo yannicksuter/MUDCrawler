@@ -534,6 +534,7 @@ public class TelnetProtocol {
 			System.out.println("unknown option " + opcode + " " + data);
 			break;
 		}
+		System.out.print("\n");
 	}
 
 	public void send(byte data) throws IOException {
